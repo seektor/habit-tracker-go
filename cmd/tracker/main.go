@@ -13,7 +13,7 @@ func main() {
 
 	habits := habit.NewHabits()
 
-	habits.Add("Test 1")
+	habits.Create("Test 1")
 	// Implement Delete
 	printHabits(habits)
 }
@@ -26,5 +26,6 @@ func printHabits(habits habit.Habits) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fmt.Println(string(res))
 }

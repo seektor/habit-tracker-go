@@ -1,6 +1,9 @@
 package habit
 
 import (
+	"errors"
+	"fmt"
+	"slices"
 	"time"
 )
 
@@ -61,8 +64,25 @@ func NewHabits() Habits {
 	}
 }
 
-func (h *Habits) Add(name string) {
-	// TODO: Validate len
+const MaxHabitNameLength = 16
+
+func (h *Habits) Create(name string) error {
+	if len(name) > MaxHabitNameLength {
+		return fmt.Errorf("Max habit name length cannot exceed %d", MaxHabitNameLength)
+	}
+
 	habit := newHabit(name)
 	h.Habits = append(h.Habits, habit)
+
+	return nil
+}
+
+func (h *Habits) Delete(idx int) error {
+	if idx < 0 || idx >= len(h.Habits) {
+		return errors.New("Invalid index")
+	}
+
+	h.Habits = slices.Delete(h.Habits, idx, idx+1)
+
+	return nil
 }
