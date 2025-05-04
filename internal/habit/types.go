@@ -1,6 +1,8 @@
 package habit
 
-import "time"
+import (
+	"time"
+)
 
 type Entry interface {
 	isEntry()
@@ -32,7 +34,7 @@ type Habit struct {
 	Summary   *Summary
 }
 
-func NewHabit(name string) *Habit {
+func newHabit(name string) *Habit {
 	habit := &Habit{
 		Name:      name,
 		CreatedAt: time.Now(),
@@ -47,4 +49,20 @@ func NewHabit(name string) *Habit {
 	}
 
 	return habit
+}
+
+type Habits struct {
+	Habits []*Habit
+}
+
+func NewHabits() Habits {
+	return Habits{
+		Habits: make([]*Habit, 0),
+	}
+}
+
+func (h *Habits) Add(name string) {
+	// TODO: Validate len
+	habit := newHabit(name)
+	h.Habits = append(h.Habits, habit)
 }
