@@ -32,18 +32,18 @@ type Habit struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	StepCount int8
-	StepTime  int8 // Minutes
+	StepTime  int16 // Minutes
 	Entries   [7]Entry
 	Summary   *Summary
 }
 
-func newHabit(name string) *Habit {
+func newHabit(name string, stepCount int8, stepTime int16) *Habit {
 	habit := &Habit{
 		Name:      name,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		StepCount: 1,
-		StepTime:  60,
+		StepCount: stepCount,
+		StepTime:  stepTime,
 		Entries:   [7]Entry{},
 		Summary: &Summary{
 			LongestStreak: 0,
@@ -64,14 +64,23 @@ func NewHabits() Habits {
 	}
 }
 
-const MaxHabitNameLength = 16
+const MaxHabitNameLength int8 = 16
+const MaxHabitTotalTime int16 = 60 * 16
 
-func (h *Habits) Create(name string) error {
-	if len(name) > MaxHabitNameLength {
+func (h *Habits) Create(name string, stepCount int8, stepTime int16) error {
+	if len(name) > int(MaxHabitNameLength) {
 		return fmt.Errorf("Max habit name length cannot exceed %d", MaxHabitNameLength)
 	}
 
-	habit := newHabit(name)
+	if stepCount < 1 || stepTime < 1 {
+		return fmt.Errorf("Step count and Step time has to be a positive value")
+	}
+
+	if int16(stepCount)*stepTime > MaxHabitTotalTime {
+		return fmt.Errorf("Max habit total time cannot exceed %d", MaxHabitTotalTime)
+	}
+
+	habit := newHabit(name, stepCount, stepTime)
 	h.Habits = append(h.Habits, habit)
 
 	return nil
