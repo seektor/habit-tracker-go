@@ -10,7 +10,7 @@ func TestCreate(t *testing.T) {
 
 	t.Run("Creates a habit", func(t *testing.T) {
 		habits := NewHabits()
-		res := habits.Create("Test", 1, 60)
+		res := habits.Create("Test", 1, 1)
 
 		if len(habits.Habits) != 1 {
 			t.Error("Expected habits length to be 1, got 0")
@@ -23,7 +23,7 @@ func TestCreate(t *testing.T) {
 
 	t.Run(fmt.Sprintf("Returns an error when a name is longer than %d", MaxHabitNameLength), func(t *testing.T) {
 		habits := NewHabits()
-		res := habits.Create(strings.Repeat("A", int(MaxHabitNameLength)+1), 1, 60)
+		res := habits.Create(strings.Repeat("A", int(MaxHabitNameLength)+1), 1, 1)
 
 		if res == nil {
 			t.Error("Expected an error")
@@ -53,7 +53,7 @@ func TestDelete(t *testing.T) {
 
 	t.Run("Deletes a habit by index", func(t *testing.T) {
 		habits := NewHabits()
-		habits.Create("Test", 1, 60)
+		habits.Create("Test", 1, 1)
 		res := habits.Delete(0)
 
 		if len(habits.Habits) != 0 {
@@ -67,7 +67,7 @@ func TestDelete(t *testing.T) {
 
 	t.Run("Returns an error when the index is out of range", func(t *testing.T) {
 		habits := NewHabits()
-		habits.Create("Test", 1, 60)
+		habits.Create("Test", 1, 1)
 		res := habits.Delete(1)
 
 		if res == nil {
@@ -79,13 +79,13 @@ func TestDelete(t *testing.T) {
 func TestCheckStep(t *testing.T) {
 
 	t.Run("Checks a habit step", func(t *testing.T) {
-		habit := newHabit("Test", 1, 60)
+		habit := newHabit("Test", 1, 1)
 		habit.CheckStep()
 		habit.CheckStep()
 		habit.CheckStep()
 
-		if habit.StepCountCheck != 3 {
-			t.Errorf("Expected StepCount to be %d, got %d", 3, habit.StepCountCheck)
+		if habit.CheckedSteps != 3 {
+			t.Errorf("Expected CheckedSteps to be %d, got %d", 3, habit.CheckedSteps)
 		}
 	})
 }
@@ -93,20 +93,20 @@ func TestCheckStep(t *testing.T) {
 func TestUncheckStep(t *testing.T) {
 
 	t.Run("Unchecks a habit step", func(t *testing.T) {
-		habit := newHabit("Test", 1, 60)
+		habit := newHabit("Test", 1, 1)
 		habit.CheckStep()
 		habit.CheckStep()
 		habit.UncheckStep()
 
-		if habit.StepCountCheck != 1 {
-			t.Errorf("Expected StepCount to be %d, got %d", 1, habit.StepCountCheck)
+		if habit.CheckedSteps != 1 {
+			t.Errorf("Expected CheckedSteps to be %d, got %d", 1, habit.CheckedSteps)
 		}
 
 		habit.UncheckStep()
 		habit.UncheckStep()
 
-		if habit.StepCountCheck != 0 {
-			t.Errorf("Expected StepCount to be %d, got %d", 0, habit.StepCountCheck)
+		if habit.CheckedSteps != 0 {
+			t.Errorf("Expected CheckedSteps to be %d, got %d", 0, habit.CheckedSteps)
 		}
 	})
 }

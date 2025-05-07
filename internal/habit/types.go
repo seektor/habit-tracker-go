@@ -5,7 +5,13 @@ import (
 	"fmt"
 	"slices"
 	"time"
+
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
+
+const MaxHabitNameLength int8 = 16
+const MaxHabitTotalTime int8 = 16
 
 type Entry interface {
 	isEntry()
@@ -28,25 +34,25 @@ type Summary struct {
 }
 
 type Habit struct {
-	Name           string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	StepCount      int8
-	StepTime       int16 // Minutes
-	StepCountCheck int8
-	Entries        [7]Entry
-	Summary        *Summary
+	Name         string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Steps        int8
+	StepTime     int8
+	CheckedSteps int8
+	Entries      [7]Entry
+	Summary      *Summary
 }
 
-func newHabit(name string, stepCount int8, stepTime int16) *Habit {
+func newHabit(name string, stepsCount int8, stepTime int8) *Habit {
 	habit := &Habit{
-		Name:           name,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
-		StepCount:      stepCount,
-		StepTime:       stepTime,
-		StepCountCheck: 0,
-		Entries:        [7]Entry{},
+		Name:         name,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Steps:        stepsCount,
+		StepTime:     stepTime,
+		CheckedSteps: 0,
+		Entries:      [7]Entry{},
 		Summary: &Summary{
 			LongestStreak: 0,
 			TotalTime:     0,
@@ -57,13 +63,28 @@ func newHabit(name string, stepCount int8, stepTime int16) *Habit {
 }
 
 func (h *Habit) CheckStep() {
-	h.StepCountCheck += 1
+	h.CheckedSteps += 1
 }
 
 func (h *Habit) UncheckStep() {
-	if h.StepCountCheck > 0 {
-		h.StepCountCheck -= 1
+	if h.CheckedSteps > 0 {
+		h.CheckedSteps -= 1
 	}
+}
+
+func validateStepData(stepCount int8, stepTime int8) error {
+	if stepCount < 1 || stepTime < 1 {
+		return fmt.Errorf("Step count and Step time has to be a positive value")
+	}
+
+	if stepCount*stepTime > MaxHabitTotalTime {
+		return fmt.Errorf("Max habit total time cannot exceed %d", MaxHabitTotalTime)
+	}
+
+	return nil
+}
+
+func (h *Habit) ChangeStepCount(stepCount int8) {
 }
 
 type Habits struct {
@@ -76,20 +97,15 @@ func NewHabits() Habits {
 	}
 }
 
-const MaxHabitNameLength int8 = 16
-const MaxHabitTotalTime int16 = 60 * 16
-
-func (h *Habits) Create(name string, stepCount int8, stepTime int16) error {
+func (h *Habits) Create(name string, stepCount int8, stepTime int8) error {
 	if len(name) > int(MaxHabitNameLength) {
 		return fmt.Errorf("Max habit name length cannot exceed %d", MaxHabitNameLength)
 	}
 
-	if stepCount < 1 || stepTime < 1 {
-		return fmt.Errorf("Step count and Step time has to be a positive value")
-	}
+	err := validateStepData(stepCount, stepTime)
 
-	if int16(stepCount)*stepTime > MaxHabitTotalTime {
-		return fmt.Errorf("Max habit total time cannot exceed %d", MaxHabitTotalTime)
+	if err != nil {
+		return err
 	}
 
 	habit := newHabit(name, stepCount, stepTime)
@@ -106,4 +122,30 @@ func (h *Habits) Delete(idx int) error {
 	h.Habits = slices.Delete(h.Habits, idx, idx+1)
 
 	return nil
+}
+
+func (h *Habits) Print() {
+	t := table.NewWriter()
+
+	t.SetTitle("Habits")
+	t.SetStyle(table.StyleLight)
+
+	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps", "Step Time", "Longest Streak (D)", "Total Time (h)"})
+
+	for idx, item := range h.Habits {
+		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.Steps), 12), item.Steps, item.StepTime, item.Summary.LongestStreak, item.Summary.TotalTime})
+	}
+
+	fmt.Println(t.Render())
+}
+
+func getCheckedStepsText(checkedSteps int8, steps int8) string {
+	switch {
+	case checkedSteps < steps:
+		return text.FgRed.Sprintf("%d ❌", checkedSteps)
+	case checkedSteps == steps:
+		return text.FgGreen.Sprintf("%d ✅", checkedSteps)
+	default:
+		return text.FgBlue.Sprintf("%d 😎", checkedSteps)
+	}
 }

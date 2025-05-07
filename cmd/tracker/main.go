@@ -13,9 +13,9 @@ func main() {
 
 	habits := habit.NewHabits()
 
-	habits.Create("Test 1", 1, 60)
-	// Implement Delete
-	printHabits(habits)
+	habits.Create("Test 1", 1, 1)
+
+	habits.Print()
 }
 
 func printHabits(habits habit.Habits) {
