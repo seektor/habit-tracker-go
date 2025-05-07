@@ -57,7 +57,7 @@ func TestDelete(t *testing.T) {
 		res := habits.Delete(0)
 
 		if len(habits.Habits) != 0 {
-			t.Errorf("Expected habits lenth to be 0, got %d", len(habits.Habits))
+			t.Errorf("Expected habits length to be 0, got %d", len(habits.Habits))
 		}
 
 		if res != nil {
@@ -72,6 +72,41 @@ func TestDelete(t *testing.T) {
 
 		if res == nil {
 			t.Error("Expected an error")
+		}
+	})
+}
+
+func TestCheckStep(t *testing.T) {
+
+	t.Run("Checks a habit step", func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		habit.CheckStep()
+		habit.CheckStep()
+		habit.CheckStep()
+
+		if habit.StepCountCheck != 3 {
+			t.Errorf("Expected StepCount to be %d, got %d", 3, habit.StepCountCheck)
+		}
+	})
+}
+
+func TestUncheckStep(t *testing.T) {
+
+	t.Run("Unchecks a habit step", func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		habit.CheckStep()
+		habit.CheckStep()
+		habit.UncheckStep()
+
+		if habit.StepCountCheck != 1 {
+			t.Errorf("Expected StepCount to be %d, got %d", 1, habit.StepCountCheck)
+		}
+
+		habit.UncheckStep()
+		habit.UncheckStep()
+
+		if habit.StepCountCheck != 0 {
+			t.Errorf("Expected StepCount to be %d, got %d", 0, habit.StepCountCheck)
 		}
 	})
 }

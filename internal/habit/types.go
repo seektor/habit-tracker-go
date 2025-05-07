@@ -28,23 +28,25 @@ type Summary struct {
 }
 
 type Habit struct {
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	StepCount int8
-	StepTime  int16 // Minutes
-	Entries   [7]Entry
-	Summary   *Summary
+	Name           string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	StepCount      int8
+	StepTime       int16 // Minutes
+	StepCountCheck int8
+	Entries        [7]Entry
+	Summary        *Summary
 }
 
 func newHabit(name string, stepCount int8, stepTime int16) *Habit {
 	habit := &Habit{
-		Name:      name,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		StepCount: stepCount,
-		StepTime:  stepTime,
-		Entries:   [7]Entry{},
+		Name:           name,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		StepCount:      stepCount,
+		StepTime:       stepTime,
+		StepCountCheck: 0,
+		Entries:        [7]Entry{},
 		Summary: &Summary{
 			LongestStreak: 0,
 			TotalTime:     0,
@@ -52,6 +54,16 @@ func newHabit(name string, stepCount int8, stepTime int16) *Habit {
 	}
 
 	return habit
+}
+
+func (h *Habit) CheckStep() {
+	h.StepCountCheck += 1
+}
+
+func (h *Habit) UncheckStep() {
+	if h.StepCountCheck > 0 {
+		h.StepCountCheck -= 1
+	}
 }
 
 type Habits struct {
