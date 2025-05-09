@@ -15,6 +15,10 @@ func TestCheckStep(t *testing.T) {
 		if habit.CheckedSteps != 3 {
 			t.Errorf("Expected CheckedSteps to be %d, got %d", 3, habit.CheckedSteps)
 		}
+
+		if habit.TotalTime != 3 {
+			t.Errorf("Expected TotalTime to be %d, got %d", 3, habit.TotalTime)
+		}
 	})
 }
 
@@ -30,11 +34,19 @@ func TestUncheckStep(t *testing.T) {
 			t.Errorf("Expected CheckedSteps to be %d, got %d", 1, habit.CheckedSteps)
 		}
 
+		if habit.TotalTime != 1 {
+			t.Errorf("Expected TotalTime to be %d, got %d", 1, habit.TotalTime)
+		}
+
 		habit.UncheckStep()
 		habit.UncheckStep()
 
 		if habit.CheckedSteps != 0 {
 			t.Errorf("Expected CheckedSteps to be %d, got %d", 0, habit.CheckedSteps)
+		}
+
+		if habit.TotalTime != 0 {
+			t.Errorf("Expected TotalTime to be %d, got %d", 0, habit.TotalTime)
 		}
 	})
 }
