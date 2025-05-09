@@ -10,7 +10,7 @@ func TestCreate(t *testing.T) {
 
 	t.Run("Creates a habit", func(t *testing.T) {
 		habits := NewHabits()
-		res := habits.Create("Test", 1, 1)
+		res := habits.Create("Test", 1, 60)
 
 		if len(habits.Habits) != 1 {
 			t.Error("Expected habits length to be 1, got 0")
@@ -23,7 +23,7 @@ func TestCreate(t *testing.T) {
 
 	t.Run(fmt.Sprintf("Returns an error when a name is longer than %d", MaxHabitNameLength), func(t *testing.T) {
 		habits := NewHabits()
-		res := habits.Create(strings.Repeat("A", int(MaxHabitNameLength)+1), 1, 1)
+		res := habits.Create(strings.Repeat("A", int(MaxHabitNameLength)+1), 1, 60)
 
 		if res == nil {
 			t.Error("Expected an error")
@@ -41,7 +41,7 @@ func TestCreate(t *testing.T) {
 
 	t.Run(fmt.Sprintf("Returns an error when the total habit time is longer than %d", MaxHabitTotalTime), func(t *testing.T) {
 		habits := NewHabits()
-		res := habits.Create("Test", -1, 0)
+		res := habits.Create("Test", 17, 60)
 
 		if res == nil {
 			t.Error("Expected an error")
@@ -53,7 +53,7 @@ func TestDelete(t *testing.T) {
 
 	t.Run("Deletes a habit by index", func(t *testing.T) {
 		habits := NewHabits()
-		habits.Create("Test", 1, 1)
+		habits.Create("Test", 1, 60)
 		res := habits.Delete(0)
 
 		if len(habits.Habits) != 0 {
@@ -67,7 +67,7 @@ func TestDelete(t *testing.T) {
 
 	t.Run("Returns an error when the index is out of range", func(t *testing.T) {
 		habits := NewHabits()
-		habits.Create("Test", 1, 1)
+		habits.Create("Test", 1, 60)
 		res := habits.Delete(1)
 
 		if res == nil {

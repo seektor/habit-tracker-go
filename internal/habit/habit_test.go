@@ -1,13 +1,14 @@
 package habit
 
 import (
+	"fmt"
 	"testing"
 )
 
 func TestCheckStep(t *testing.T) {
 
 	t.Run("Checks a habit step", func(t *testing.T) {
-		habit := newHabit("Test", 1, 1)
+		habit := newHabit("Test", 1, 60)
 		habit.CheckStep()
 		habit.CheckStep()
 		habit.CheckStep()
@@ -25,7 +26,7 @@ func TestCheckStep(t *testing.T) {
 func TestUncheckStep(t *testing.T) {
 
 	t.Run("Unchecks a habit step", func(t *testing.T) {
-		habit := newHabit("Test", 1, 1)
+		habit := newHabit("Test", 1, 60)
 		habit.CheckStep()
 		habit.CheckStep()
 		habit.UncheckStep()
@@ -47,6 +48,27 @@ func TestUncheckStep(t *testing.T) {
 
 		if habit.TotalTime != 0 {
 			t.Errorf("Expected TotalTime to be %d, got %d", 0, habit.TotalTime)
+		}
+	})
+}
+
+func TestChangeStepsCount(t *testing.T) {
+
+	t.Run(fmt.Sprintf("Returns an error when the total habit time is longer than %d", MaxHabitTotalTime), func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		res := habit.ChangeStepsCount(17)
+
+		if res == nil {
+			t.Error("Expected an error")
+		}
+	})
+
+	t.Run("Changes number of steps", func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		habit.ChangeStepsCount(3)
+
+		if habit.StepsCount != 3 {
+			t.Errorf("Expected StepsCount to be %d, got %d", 3, habit.StepsCount)
 		}
 	})
 }

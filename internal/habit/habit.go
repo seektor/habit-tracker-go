@@ -6,7 +6,7 @@ import (
 )
 
 const MaxHabitNameLength int8 = 16
-const MaxHabitTotalTime int8 = 16
+const MaxHabitTotalTime int16 = 16 * 60 // minutes
 
 type Entry interface {
 	isEntry()
@@ -27,20 +27,20 @@ type Habit struct {
 	Name          string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	Steps         int8
-	StepTime      int8
+	StepsCount    int8
+	StepTime      int16 // minutes
 	CheckedSteps  int8
-	TotalTime     int32
+	TotalTime     int32 // hours
 	LongestStreak int16
 	Entries       [6]Entry // History of last 6 days
 }
 
-func newHabit(name string, stepsCount int8, stepTime int8) *Habit {
+func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
 	habit := &Habit{
 		Name:          name,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		Steps:         stepsCount,
+		StepsCount:    stepsCount,
 		StepTime:      stepTime,
 		CheckedSteps:  0,
 		Entries:       [6]Entry{},
@@ -63,17 +63,29 @@ func (h *Habit) UncheckStep() {
 	}
 }
 
-func validateStepData(stepCount int8, stepTime int8) error {
-	if stepCount < 1 || stepTime < 1 {
-		return fmt.Errorf("Step count and Step time has to be a positive value")
+func validateStepData(stepsCount int8, stepTime int16) error {
+	if stepsCount < 1 || stepTime < 1 {
+		return fmt.Errorf("step count and Step time has to be a positive value")
 	}
 
-	if stepCount*stepTime > MaxHabitTotalTime {
-		return fmt.Errorf("Max habit total time cannot exceed %d", MaxHabitTotalTime)
+	if int16(stepsCount)*stepTime > MaxHabitTotalTime {
+		return fmt.Errorf("max habit total time cannot exceed %d", MaxHabitTotalTime)
 	}
 
 	return nil
 }
 
-func (h *Habit) ChangeStepCount(stepCount int8) {
+func (h *Habit) ChangeStepsCount(stepsCount int8) error {
+	err := validateStepData(stepsCount, h.StepTime)
+
+	if err != nil {
+		return err
+	}
+
+	h.StepsCount = stepsCount
+
+	return nil
+}
+
+func (h *Habit) ChangeStepTime(stepCount int8) {
 }

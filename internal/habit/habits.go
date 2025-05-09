@@ -19,18 +19,18 @@ func NewHabits() Habits {
 	}
 }
 
-func (h *Habits) Create(name string, stepCount int8, stepTime int8) error {
+func (h *Habits) Create(name string, stepsCount int8, stepTime int16) error {
 	if len(name) > int(MaxHabitNameLength) {
 		return fmt.Errorf("max habit name length cannot exceed %d", MaxHabitNameLength)
 	}
 
-	err := validateStepData(stepCount, stepTime)
+	err := validateStepData(stepsCount, stepTime)
 
 	if err != nil {
 		return err
 	}
 
-	habit := newHabit(name, stepCount, stepTime)
+	habit := newHabit(name, stepsCount, stepTime)
 	h.Habits = append(h.Habits, habit)
 
 	return nil
@@ -52,10 +52,10 @@ func (h *Habits) Print() {
 	t.SetTitle("Habits")
 	t.SetStyle(table.StyleLight)
 
-	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps", "Step Time", "Longest Streak (D)", "Total Time"})
+	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time", "Longest Streak (D)", "Total Time"})
 
 	for idx, item := range h.Habits {
-		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.Steps), 12), item.Steps, item.StepTime, item.LongestStreak, getTotalTimeText(item.TotalTime)})
+		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12), item.StepsCount, item.StepTime, item.LongestStreak, getTotalTimeText(item.TotalTime)})
 	}
 
 	fmt.Println(t.Render())
