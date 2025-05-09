@@ -28,9 +28,9 @@ type Habit struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	StepsCount    int8
-	StepTime      int16 // minutes
+	StepMinutes   int16 // minutes
 	CheckedSteps  int8
-	TotalTime     int32 // hours
+	TotalTime     *TotalTime
 	LongestStreak int16
 	Entries       [6]Entry // History of last 6 days
 }
@@ -41,11 +41,11 @@ func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 		StepsCount:    stepsCount,
-		StepTime:      stepTime,
+		StepMinutes:   stepTime,
 		CheckedSteps:  0,
 		Entries:       [6]Entry{},
 		LongestStreak: 0,
-		TotalTime:     0,
+		TotalTime:     &TotalTime{},
 	}
 
 	return habit
@@ -53,13 +53,13 @@ func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
 
 func (h *Habit) CheckStep() {
 	h.CheckedSteps += 1
-	h.TotalTime += int32(h.StepTime)
+	h.TotalTime.Add(h.StepMinutes)
 }
 
 func (h *Habit) UncheckStep() {
 	if h.CheckedSteps > 0 {
 		h.CheckedSteps -= 1
-		h.TotalTime -= int32(h.StepTime)
+		h.TotalTime.Subtract(h.StepMinutes)
 	}
 }
 
@@ -76,7 +76,7 @@ func validateStepData(stepsCount int8, stepTime int16) error {
 }
 
 func (h *Habit) ChangeStepsCount(stepsCount int8) error {
-	err := validateStepData(stepsCount, h.StepTime)
+	err := validateStepData(stepsCount, h.StepMinutes)
 
 	if err != nil {
 		return err

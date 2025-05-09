@@ -55,7 +55,7 @@ func (h *Habits) Print() {
 	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time", "Longest Streak (D)", "Total Time"})
 
 	for idx, item := range h.Habits {
-		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12), item.StepsCount, item.StepTime, item.LongestStreak, getTotalTimeText(item.TotalTime)})
+		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12), item.StepsCount, item.StepMinutes, item.LongestStreak, item.TotalTime.Stringify()})
 	}
 
 	fmt.Println(t.Render())
