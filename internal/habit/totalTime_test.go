@@ -42,7 +42,9 @@ func TestAdd(t *testing.T) {
 		want    TotalTime
 	}{
 		{TotalTime{Minutes: 0}, 10, TotalTime{Minutes: 10}},
+		{TotalTime{Minutes: 0}, 60, TotalTime{Hours: 1}},
 		{TotalTime{Minutes: 0}, 70, TotalTime{Minutes: 10, Hours: 1}},
+		{TotalTime{Hours: 0}, 24 * 60, TotalTime{Days: 1}},
 		{TotalTime{Hours: 23, Minutes: 0}, 130, TotalTime{Days: 1, Hours: 1, Minutes: 10}},
 	}
 
@@ -56,6 +58,17 @@ func TestAdd(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAddToClone(t *testing.T) {
+	t.Run("Adds minutes to cloned structure", func(t *testing.T) {
+		initial := &TotalTime{Minutes: 0}
+		cloned := initial.AddToClone(10)
+
+		if initial == &cloned || initial.Minutes == cloned.Minutes {
+			t.Error("Structure has not been cloned and updated properly")
+		}
+	})
 }
 
 func TestSubtract(t *testing.T) {

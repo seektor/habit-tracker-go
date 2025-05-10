@@ -10,7 +10,7 @@ type TotalTime struct {
 	Minutes int8
 }
 
-func (t *TotalTime) Stringify() string {
+func (t TotalTime) Stringify() string {
 	text := ""
 
 	if t.Days > 0 {
@@ -62,6 +62,12 @@ func (t *TotalTime) Add(minutes int16) {
 	t.Days = newDays
 	t.Hours = newHours
 	t.Minutes = newMinutes
+}
+
+func (t TotalTime) AddToClone(minutes int16) TotalTime {
+	t.Add(minutes)
+
+	return t
 }
 
 func (t *TotalTime) subtractDays(days int16) {

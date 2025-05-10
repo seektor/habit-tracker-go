@@ -52,10 +52,16 @@ func (h *Habits) Print() {
 	t.SetTitle("Habits")
 	t.SetStyle(table.StyleLight)
 
-	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time", "Longest Streak (D)", "Total Time"})
+	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time"})
 
 	for idx, item := range h.Habits {
-		t.AppendRow(table.Row{idx, item.Name, text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12), item.StepsCount, item.StepMinutes, item.LongestStreak, item.TotalTime.Stringify()})
+		t.AppendRow(table.Row{idx,
+			item.Name,
+			text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12),
+			item.StepsCount,
+			item.StepMinutes,
+			item.Summary.LongestStreak,
+			item.Summary.TotalTime.AddToClone(item.StepMinutes * int16(item.StepsCount)).Stringify()})
 	}
 
 	fmt.Println(t.Render())

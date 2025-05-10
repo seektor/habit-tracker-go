@@ -23,29 +23,37 @@ type FrozenEntry struct{}
 
 func (fe FrozenEntry) isEntry() {}
 
-type Habit struct {
-	Name          string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	StepsCount    int8
-	StepMinutes   int16 // minutes
-	CheckedSteps  int8
-	TotalTime     *TotalTime
+type Summary struct {
+	TotalTime     TotalTime
 	LongestStreak int16
-	Entries       [6]Entry // History of last 6 days
+	CurrentStreak int16
+	History       [6]Entry // History of last 6 days
+}
+
+type Habit struct {
+	Name         string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	StepsCount   int8
+	StepMinutes  int16 // minutes
+	CheckedSteps int8
+	Summary      *Summary
 }
 
 func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
 	habit := &Habit{
-		Name:          name,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-		StepsCount:    stepsCount,
-		StepMinutes:   stepTime,
-		CheckedSteps:  0,
-		Entries:       [6]Entry{},
-		LongestStreak: 0,
-		TotalTime:     &TotalTime{},
+		Name:         name,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		StepsCount:   stepsCount,
+		StepMinutes:  stepTime,
+		CheckedSteps: 0,
+		Summary: &Summary{
+			TotalTime:     TotalTime{},
+			LongestStreak: 0,
+			CurrentStreak: 0,
+			History:       [6]Entry{},
+		},
 	}
 
 	return habit
@@ -53,13 +61,11 @@ func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
 
 func (h *Habit) CheckStep() {
 	h.CheckedSteps += 1
-	h.TotalTime.Add(h.StepMinutes)
 }
 
 func (h *Habit) UncheckStep() {
 	if h.CheckedSteps > 0 {
 		h.CheckedSteps -= 1
-		h.TotalTime.Subtract(h.StepMinutes)
 	}
 }
 

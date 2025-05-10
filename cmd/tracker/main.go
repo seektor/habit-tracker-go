@@ -13,7 +13,7 @@ func main() {
 
 	habits := habit.NewHabits()
 
-	habits.Create("Test 1", 1, 1)
+	habits.Create("Test 1", 1, 60)
 
 	habits.Print()
 }
