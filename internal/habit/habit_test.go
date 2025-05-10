@@ -60,3 +60,24 @@ func TestChangeStepsCount(t *testing.T) {
 		}
 	})
 }
+
+func TestStepMinutes(t *testing.T) {
+
+	t.Run(fmt.Sprintf("Returns an error when the total habit time is longer than %d", MaxHabitTotalTime), func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		res := habit.ChangeStepMinutes(MaxHabitTotalTime + 1)
+
+		if res == nil {
+			t.Error("Expected an error")
+		}
+	})
+
+	t.Run("Changes number of steps", func(t *testing.T) {
+		habit := newHabit("Test", 1, 60)
+		habit.ChangeStepMinutes(30)
+
+		if habit.StepMinutes != 30 {
+			t.Errorf("Expected StepMinutes to be %d, got %d", 30, habit.StepMinutes)
+		}
+	})
+}

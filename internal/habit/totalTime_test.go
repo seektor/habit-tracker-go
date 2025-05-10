@@ -60,17 +60,6 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestAddToClone(t *testing.T) {
-	t.Run("Adds minutes to cloned structure", func(t *testing.T) {
-		initial := &TotalTime{Minutes: 0}
-		cloned := initial.AddToClone(10)
-
-		if initial == &cloned || initial.Minutes == cloned.Minutes {
-			t.Error("Structure has not been cloned and updated properly")
-		}
-	})
-}
-
 func TestSubtract(t *testing.T) {
 	var tests = []struct {
 		initial TotalTime

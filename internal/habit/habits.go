@@ -10,12 +10,12 @@ import (
 )
 
 type Habits struct {
-	Habits []*Habit
+	Habits []Habit
 }
 
 func NewHabits() Habits {
 	return Habits{
-		Habits: make([]*Habit, 0),
+		Habits: make([]Habit, 0),
 	}
 }
 
@@ -55,13 +55,17 @@ func (h *Habits) Print() {
 	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time"})
 
 	for idx, item := range h.Habits {
+		totalTime := item.Summary.TotalTime
+		totalTime.Add(item.StepMinutes * int16(item.StepsCount))
+
 		t.AppendRow(table.Row{idx,
 			item.Name,
 			text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12),
 			item.StepsCount,
 			item.StepMinutes,
 			item.Summary.LongestStreak,
-			item.Summary.TotalTime.AddToClone(item.StepMinutes * int16(item.StepsCount)).Stringify()})
+			totalTime.Stringify(),
+		})
 	}
 
 	fmt.Println(t.Render())

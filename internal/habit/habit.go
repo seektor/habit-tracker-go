@@ -37,18 +37,18 @@ type Habit struct {
 	StepsCount   int8
 	StepMinutes  int16 // minutes
 	CheckedSteps int8
-	Summary      *Summary
+	Summary      Summary
 }
 
-func newHabit(name string, stepsCount int8, stepTime int16) *Habit {
-	habit := &Habit{
+func newHabit(name string, stepsCount int8, stepTime int16) Habit {
+	habit := Habit{
 		Name:         name,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		StepsCount:   stepsCount,
 		StepMinutes:  stepTime,
 		CheckedSteps: 0,
-		Summary: &Summary{
+		Summary: Summary{
 			TotalTime:     TotalTime{},
 			LongestStreak: 0,
 			CurrentStreak: 0,
@@ -93,5 +93,14 @@ func (h *Habit) ChangeStepsCount(stepsCount int8) error {
 	return nil
 }
 
-func (h *Habit) ChangeStepTime(stepCount int8) {
+func (h *Habit) ChangeStepMinutes(stepMinutes int16) error {
+	err := validateStepData(h.StepsCount, stepMinutes)
+
+	if err != nil {
+		return err
+	}
+
+	h.StepMinutes = stepMinutes
+
+	return nil
 }

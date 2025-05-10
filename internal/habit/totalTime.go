@@ -64,12 +64,6 @@ func (t *TotalTime) Add(minutes int16) {
 	t.Minutes = newMinutes
 }
 
-func (t TotalTime) AddToClone(minutes int16) TotalTime {
-	t.Add(minutes)
-
-	return t
-}
-
 func (t *TotalTime) subtractDays(days int16) {
 	newDays := t.Days - days
 
