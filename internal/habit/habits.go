@@ -46,6 +46,18 @@ func (h *Habits) Delete(idx int) error {
 	return nil
 }
 
+func (h *Habits) Freeze(idx int) {
+	for _, item := range h.Habits {
+		item.Freeze()
+	}
+}
+
+func (h *Habits) Unfreeze(idx int) {
+	for _, item := range h.Habits {
+		item.Unfreeze()
+	}
+}
+
 func (h *Habits) Print() {
 	t := table.NewWriter()
 
@@ -60,7 +72,7 @@ func (h *Habits) Print() {
 
 		t.AppendRow(table.Row{idx,
 			item.Name,
-			text.AlignCenter.Apply(getCheckedStepsText(item.CheckedSteps, item.StepsCount), 12),
+			text.AlignCenter.Apply(getCheckedStepsText(&item), 12),
 			item.StepsCount,
 			item.StepMinutes,
 			item.Summary.LongestStreak,
@@ -71,32 +83,15 @@ func (h *Habits) Print() {
 	fmt.Println(t.Render())
 }
 
-func getCheckedStepsText(checkedSteps int8, steps int8) string {
+func getCheckedStepsText(h *Habit) string {
 	switch {
-	case checkedSteps < steps:
-		return text.FgRed.Sprintf("%d ❌", checkedSteps)
-	case checkedSteps == steps:
-		return text.FgGreen.Sprintf("%d ✅", checkedSteps)
+	case h.isFrozen:
+		return text.BgBlue.Sprint("FROZEN")
+	case h.CheckedSteps < h.StepsCount:
+		return text.FgRed.Sprintf("%d ❌", h.CheckedSteps)
+	case h.CheckedSteps == h.StepsCount:
+		return text.FgGreen.Sprintf("%d ✅", h.CheckedSteps)
 	default:
-		return text.FgBlue.Sprintf("%d 😎", checkedSteps)
+		return text.FgBlue.Sprintf("%d 😎", h.CheckedSteps)
 	}
-}
-
-func getTotalTimeText(totalTime int32) string {
-	days := totalTime / 24
-	hours := totalTime % 16
-
-	text := ""
-
-	if days > 0 {
-		if days == 1 {
-			text += "1 Day "
-		} else {
-			text += fmt.Sprintf("%d Days ", days)
-		}
-	}
-
-	text += fmt.Sprintf("%d Hours", hours)
-
-	return text
 }

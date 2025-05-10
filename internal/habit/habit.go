@@ -62,10 +62,18 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 }
 
 func (h *Habit) CheckStep() {
+	if h.isFrozen {
+		return
+	}
+
 	h.CheckedSteps += 1
 }
 
 func (h *Habit) UncheckStep() {
+	if h.isFrozen {
+		return
+	}
+
 	if h.CheckedSteps > 0 {
 		h.CheckedSteps -= 1
 	}
@@ -83,7 +91,7 @@ func validateStepData(stepsCount int8, stepTime int16) error {
 	return nil
 }
 
-func (h *Habit) ChangeStepsCount(stepsCount int8) error {
+func (h *Habit) SetStepsCount(stepsCount int8) error {
 	err := validateStepData(stepsCount, h.StepMinutes)
 
 	if err != nil {
@@ -95,7 +103,7 @@ func (h *Habit) ChangeStepsCount(stepsCount int8) error {
 	return nil
 }
 
-func (h *Habit) ChangeStepMinutes(stepMinutes int16) error {
+func (h *Habit) SetStepMinutes(stepMinutes int16) error {
 	err := validateStepData(h.StepsCount, stepMinutes)
 
 	if err != nil {
@@ -105,6 +113,15 @@ func (h *Habit) ChangeStepMinutes(stepMinutes int16) error {
 	h.StepMinutes = stepMinutes
 
 	return nil
+}
+
+func (h *Habit) Freeze() {
+	h.isFrozen = true
+	h.CheckedSteps = 0
+}
+
+func (h *Habit) Unfreeze() {
+	h.isFrozen = false
 }
 
 func (h *Habit) ProcessDay() {

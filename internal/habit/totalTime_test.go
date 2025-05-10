@@ -50,11 +50,11 @@ func TestAdd(t *testing.T) {
 
 	for _, tt := range tests {
 
-		t.Run("Adds minutes", func(t *testing.T) {
+		t.Run("adds minutes", func(t *testing.T) {
 			tt.initial.Add(tt.minutes)
 
 			if tt.initial != tt.want {
-				t.Errorf("Invalid total time, expected: %s, got: %s", tt.want.Stringify(), tt.initial.Stringify())
+				t.Errorf("invalid total time, expected: %s, got: %s", tt.want.Stringify(), tt.initial.Stringify())
 			}
 		})
 	}
@@ -77,11 +77,11 @@ func TestSubtract(t *testing.T) {
 
 	for _, tt := range tests {
 
-		t.Run("Subtracts minutes", func(t *testing.T) {
+		t.Run("subtracts minutes", func(t *testing.T) {
 			tt.initial.Subtract(tt.minutes)
 
 			if tt.initial != tt.want {
-				t.Errorf("Invalid total time, expected: %s, got: %s", tt.want.Stringify(), tt.initial.Stringify())
+				t.Errorf("invalid total time, expected: %s, got: %s", tt.want.Stringify(), tt.initial.Stringify())
 			}
 		})
 	}
