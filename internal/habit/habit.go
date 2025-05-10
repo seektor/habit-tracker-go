@@ -37,6 +37,7 @@ type Habit struct {
 	StepsCount   int8
 	StepMinutes  int16 // minutes
 	CheckedSteps int8
+	isFrozen     bool
 	Summary      Summary
 }
 
@@ -48,6 +49,7 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 		StepsCount:   stepsCount,
 		StepMinutes:  stepTime,
 		CheckedSteps: 0,
+		isFrozen:     false,
 		Summary: Summary{
 			TotalTime:     TotalTime{},
 			LongestStreak: 0,
@@ -103,4 +105,37 @@ func (h *Habit) ChangeStepMinutes(stepMinutes int16) error {
 	h.StepMinutes = stepMinutes
 
 	return nil
+}
+
+func (h *Habit) ProcessDay() {
+	var entry Entry
+
+	if h.isFrozen {
+		entry = FrozenEntry{}
+	} else {
+		entry = ActiveEntry{Done: h.CheckedSteps, Todo: h.StepsCount}
+	}
+
+	historyLen := len(h.Summary.History)
+
+	for i := range historyLen - 1 {
+		h.Summary.History[i] = h.Summary.History[i+1]
+	}
+
+	h.Summary.History[historyLen-1] = entry
+	h.Summary.TotalTime.Add(int16(h.CheckedSteps) * h.StepMinutes)
+
+	if !h.isFrozen {
+		if h.CheckedSteps >= h.StepsCount {
+			h.Summary.CurrentStreak += 1
+
+			if h.Summary.CurrentStreak > h.Summary.LongestStreak {
+				h.Summary.LongestStreak = h.Summary.CurrentStreak
+			}
+		} else {
+			h.Summary.CurrentStreak = 0
+		}
+	}
+
+	h.CheckedSteps = 0
 }

@@ -56,7 +56,7 @@ func (h *Habits) Print() {
 
 	for idx, item := range h.Habits {
 		totalTime := item.Summary.TotalTime
-		totalTime.Add(item.StepMinutes * int16(item.StepsCount))
+		totalTime.Add(item.StepMinutes * int16(item.CheckedSteps))
 
 		t.AppendRow(table.Row{idx,
 			item.Name,

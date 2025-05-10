@@ -45,6 +45,10 @@ func (t TotalTime) Stringify() string {
 		}
 	}
 
+	if text == "" {
+		return "-"
+	}
+
 	return text
 }
 

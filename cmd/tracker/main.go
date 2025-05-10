@@ -15,7 +15,10 @@ func main() {
 
 	habits.Create("Test 1", 1, 60)
 
+	habits.Habits[0].CheckStep()
 	habits.Print()
+	habits.Habits[0].ProcessDay()
+	fmt.Printf("%v", habits.Habits[0].Summary.History)
 }
 
 func printHabits(habits habit.Habits) {
