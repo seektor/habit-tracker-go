@@ -3,10 +3,13 @@ package habit
 import (
 	"fmt"
 	"time"
+
+	"github.com/seektor/habit-tracker-go/internal/utils"
 )
 
 const MaxHabitNameLength int8 = 16
 const MaxHabitTotalTime int16 = 16 * 60 // minutes
+const HistoryLen int8 = 6
 
 type Entry interface {
 	isEntry()
@@ -27,7 +30,7 @@ type Summary struct {
 	TotalTime     TotalTime
 	LongestStreak int16
 	CurrentStreak int16
-	History       [6]Entry // History of last 6 days
+	History       [HistoryLen]Entry // History of last 6 days
 }
 
 type Habit struct {
@@ -54,7 +57,7 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 			TotalTime:     TotalTime{},
 			LongestStreak: 0,
 			CurrentStreak: 0,
-			History:       [6]Entry{},
+			History:       [HistoryLen]Entry{},
 		},
 	}
 
@@ -124,35 +127,76 @@ func (h *Habit) Unfreeze() {
 	h.isFrozen = false
 }
 
-func (h *Habit) ProcessDay() {
-	var entry Entry
-
+func (h *Habit) getCurrentEntry() Entry {
 	if h.isFrozen {
-		entry = FrozenEntry{}
+		return FrozenEntry{}
 	} else {
-		entry = ActiveEntry{Done: h.CheckedSteps, Todo: h.StepsCount}
-	}
-
-	historyLen := len(h.Summary.History)
-
-	for i := range historyLen - 1 {
-		h.Summary.History[i] = h.Summary.History[i+1]
-	}
-
-	h.Summary.History[historyLen-1] = entry
-	h.Summary.TotalTime.Add(int16(h.CheckedSteps) * h.StepMinutes)
-
-	if !h.isFrozen {
-		if h.CheckedSteps >= h.StepsCount {
-			h.Summary.CurrentStreak += 1
-
-			if h.Summary.CurrentStreak > h.Summary.LongestStreak {
-				h.Summary.LongestStreak = h.Summary.CurrentStreak
-			}
-		} else {
-			h.Summary.CurrentStreak = 0
+		return ActiveEntry{
+			Done: h.CheckedSteps,
+			Todo: h.StepsCount,
 		}
 	}
+}
 
+func (h *Habit) updateStatistics() {
+	if h.isFrozen {
+		return
+	}
+
+	h.Summary.TotalTime.Add(h.StepMinutes * int16(h.CheckedSteps))
+
+	if h.CheckedSteps >= h.StepsCount {
+		h.Summary.CurrentStreak += 1
+
+		if h.Summary.CurrentStreak > h.Summary.LongestStreak {
+			h.Summary.LongestStreak = h.Summary.CurrentStreak
+		}
+	} else {
+		h.Summary.CurrentStreak = 0
+	}
+}
+
+func (h *Habit) UpdateOnDaysChange() bool {
+	now := time.Now()
+	daysDiff := utils.GetDaysDiff(h.UpdatedAt, now)
+
+	if daysDiff < 0 {
+		fmt.Println("Unknown error has occurred")
+		return false
+	}
+
+	switch {
+	case daysDiff == 0:
+		fmt.Println("=== Nothing to update ===")
+		return false
+	case daysDiff == 1:
+		fmt.Println("=== Updating: 1 day has passed ===")
+	default:
+		fmt.Printf("=== Updating: %d days have passed ===\n", daysDiff)
+	}
+
+	firstDayEntryIdx := int32(HistoryLen) - daysDiff
+	if firstDayEntryIdx >= 0 {
+		// Shift history and save the current entry when it is within the history range
+		for i := range int(firstDayEntryIdx) {
+			h.Summary.History[i] = h.Summary.History[i+int(daysDiff)]
+		}
+
+		h.Summary.History[firstDayEntryIdx] = h.getCurrentEntry()
+	}
+
+	// Update based on the values from the day of the last user activity
+	h.updateStatistics()
 	h.CheckedSteps = 0
+
+	batchEntryIdx := max(0, firstDayEntryIdx+1)
+	for i := batchEntryIdx; i < int32(HistoryLen); i++ {
+		// Fill the history between the day of the last user activity and today
+		h.Summary.History[i] = h.getCurrentEntry()
+		h.updateStatistics()
+	}
+
+	h.UpdatedAt = time.Now()
+	fmt.Println("=== Update complete ===")
+	return true
 }

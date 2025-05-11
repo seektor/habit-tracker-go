@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/seektor/habit-tracker-go/internal/habit"
 )
@@ -15,10 +16,13 @@ func main() {
 
 	habits.Create("Test 1", 1, 60)
 
+	habits.Habits[0].UpdatedAt = time.Date(2025, 5, 1, 15, 34, 0, 0, time.UTC)
+
 	habits.Habits[0].CheckStep()
-	habits.Habits[0].Freeze()
+	// habits.Habits[0].Freeze()
 	habits.Print()
-	// habits.Habits[0].ProcessDay()
+
+	habits.Habits[0].UpdateOnDaysChange()
 	fmt.Printf("%v", habits.Habits[0].Summary.History)
 }
 
