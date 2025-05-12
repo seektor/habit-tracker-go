@@ -3,8 +3,6 @@ package habit
 import (
 	"fmt"
 	"time"
-
-	"github.com/seektor/habit-tracker-go/internal/utils"
 )
 
 const MaxHabitNameLength int8 = 16
@@ -36,7 +34,6 @@ type Summary struct {
 type Habit struct {
 	Name         string
 	CreatedAt    time.Time
-	UpdatedAt    time.Time
 	StepsCount   int8
 	StepMinutes  int16 // minutes
 	CheckedSteps int8
@@ -48,7 +45,6 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 	habit := Habit{
 		Name:         name,
 		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
 		StepsCount:   stepsCount,
 		StepMinutes:  stepTime,
 		CheckedSteps: 0,
@@ -156,25 +152,10 @@ func (h *Habit) updateStatistics() {
 	}
 }
 
-func (h *Habit) UpdateOnDaysChange() bool {
-	now := time.Now()
-	daysDiff := utils.GetDaysDiff(h.UpdatedAt, now)
-
-	if daysDiff < 0 {
-		fmt.Println("Unknown error has occurred")
-		return false
+func (h *Habit) UpdateToPresent(daysDiff int32) {
+	if daysDiff <= 0 {
+		return
 	}
-
-	switch {
-	case daysDiff == 0:
-		fmt.Println("=== Nothing to update ===")
-		return false
-	case daysDiff == 1:
-		fmt.Println("=== Updating: 1 day has passed ===")
-	default:
-		fmt.Printf("=== Updating: %d days have passed ===\n", daysDiff)
-	}
-
 	firstDayEntryIdx := int32(HistoryLen) - daysDiff
 	if firstDayEntryIdx >= 0 {
 		// Shift history and save the current entry when it is within the history range
@@ -195,8 +176,4 @@ func (h *Habit) UpdateOnDaysChange() bool {
 		h.Summary.History[i] = h.getCurrentEntry()
 		h.updateStatistics()
 	}
-
-	h.UpdatedAt = time.Now()
-	fmt.Println("=== Update complete ===")
-	return true
 }

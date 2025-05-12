@@ -4,18 +4,23 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
+
+	"github.com/seektor/habit-tracker-go/internal/utils"
 )
 
 type Habits struct {
-	Habits []Habit
+	Habits    []Habit
+	UpdatedAt time.Time
 }
 
 func NewHabits() Habits {
 	return Habits{
-		Habits: make([]Habit, 0),
+		Habits:    make([]Habit, 0),
+		UpdatedAt: time.Now(),
 	}
 }
 
@@ -56,6 +61,30 @@ func (h *Habits) Unfreeze(idx int) {
 	for _, item := range h.Habits {
 		item.Unfreeze()
 	}
+}
+
+func (h *Habits) UpdateToPresent() {
+	now := time.Now()
+	daysDiff := utils.GetDaysDiff(h.UpdatedAt, now)
+
+	switch {
+	case daysDiff < 0:
+		fmt.Println("Unknown error has occurred")
+		return
+	case daysDiff == 0:
+		fmt.Println("=== Nothing to update ===")
+		return
+	case daysDiff == 1:
+		fmt.Println("=== Updating: 1 day has passed ===")
+	default:
+		fmt.Printf("=== Updating: %d days have passed ===\n", daysDiff)
+	}
+
+	for idx := range h.Habits {
+		h.Habits[idx].UpdateToPresent(daysDiff)
+	}
+
+	h.UpdatedAt = now
 }
 
 func (h *Habits) Print() {

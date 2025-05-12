@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCreate(t *testing.T) {
@@ -72,6 +73,57 @@ func TestDelete(t *testing.T) {
 
 		if res == nil {
 			t.Error("expected an error")
+		}
+	})
+}
+
+func TestHabitsUpdateToPresent(t *testing.T) {
+
+	t.Run("does not update habits when there is no day difference", func(t *testing.T) {
+		habits := NewHabits()
+		habits.Create("Test", 1, 60)
+
+		preUpdatedHabit := habits.Habits[0]
+
+		habits.UpdateToPresent()
+
+		if habits.Habits[0] != preUpdatedHabit {
+			t.Error("habits have not been updated")
+		}
+
+		now := time.Now()
+
+		isDateUpdated := habits.UpdatedAt.Year() == now.Year() &&
+			habits.UpdatedAt.Month() == now.Month() &&
+			habits.UpdatedAt.Day() == now.Day()
+
+		if !isDateUpdated {
+			t.Error("date have not been updated")
+		}
+	})
+
+	t.Run("updates habits when there is a day difference", func(t *testing.T) {
+		habits := NewHabits()
+		habits.Create("Test", 1, 60)
+		habits.UpdatedAt = habits.UpdatedAt.AddDate(0, 0, -1)
+
+		preUpdatedHabit := habits.Habits[0]
+
+		habits.UpdateToPresent()
+		fmt.Printf("%v %v", preUpdatedHabit.Summary.History, habits.Habits[0].Summary.History)
+
+		if habits.Habits[0] == preUpdatedHabit {
+			t.Error("habits have not been updated")
+		}
+
+		now := time.Now()
+
+		isDateUpdated := habits.UpdatedAt.Year() == now.Year() &&
+			habits.UpdatedAt.Month() == now.Month() &&
+			habits.UpdatedAt.Day() == now.Day()
+
+		if !isDateUpdated {
+			t.Error("date have not been updated")
 		}
 	})
 }
