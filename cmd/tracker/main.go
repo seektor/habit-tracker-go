@@ -11,23 +11,37 @@ import (
 	"github.com/seektor/habit-tracker-go/internal/utils"
 )
 
+const FileName = "habit_tracker.json"
+
 func main() {
-	fmt.Println(utils.FgColors.Yellow +
-		utils.FgColors.Bold +
+	fmt.Println(utils.FgColors.Yellow + utils.FgColors.Bold +
 		"=== Habit Tracker ===" +
 		utils.FgColors.Reset)
 
 	habits := habit.NewHabits()
 
-	habits.Create("Test 1", 1, 60)
+	if err := habits.Load(FileName); err != nil {
+		fmt.Println(utils.FgColors.Red + err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println()
+
+	if len(habits.Habits) > 0 {
+		habits.PrintAll()
+	} else {
+		habits.PrintCommands()
+	}
+
+	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Println()
 		fmt.Print("Enter command: ")
 
 		input, err := reader.ReadString('\n')
+
 		if err != nil {
 			fmt.Println("An error occured while reading input. Please try again", err)
 			return
@@ -35,7 +49,7 @@ func main() {
 
 		command, args := parseInput(input)
 
-		handleCommand(&habits, command, args)
+		handleCommand(habits, command, args)
 	}
 }
 
@@ -55,33 +69,20 @@ func parseInput(input string) (string, []string) {
 	return command, args
 }
 
-func printCommands() {
-	fmt.Println()
-	fmt.Println(getCommandText("p  [index?]", "Print all habits / a habit"))
-	fmt.Println(getCommandText("a  [name] [stepTime] [stepsCount]", "Add a habit"))
-	fmt.Println(getCommandText("d  [index]", "Delete a habit"))
-	fmt.Println(getCommandText("ct [index] [stepTime]", "Change step time of a habit"))
-	fmt.Println(getCommandText("cs [index] [stepsCount]", "Change number of steps"))
-	fmt.Println(getCommandText("f  [index?]", "Freeze all habits / a habit"))
-	fmt.Println(getCommandText("uf [index?]", "Unfreeze all habits / a habit"))
-	fmt.Println(getCommandText("q", "Quit"))
-	fmt.Println()
-}
-
 func handleCommand(habits *habit.Habits, command string, args []string) {
 	switch command {
 	case "p":
 		idx, err := getAtIdx(args, 0)
 		if err != nil {
-			habits.Print()
+			habits.PrintAll()
 		} else {
 			fmt.Print(idx)
 		}
 	case "q":
 		os.Exit(0)
 	default:
-		fmt.Println(utils.FgColors.Red + "Unknown command" + utils.FgColors.Reset)
-		printCommands()
+		fmt.Println(utils.FgColors.Red + "=== Unknown command ===" + utils.FgColors.Reset)
+		habits.PrintCommands()
 	}
 
 }
@@ -92,8 +93,4 @@ func getAtIdx(slice []string, idx int) (string, error) {
 	}
 
 	return "", errors.New("no value")
-}
-
-func getCommandText(command string, description string) string {
-	return fmt.Sprintf("%s%s%s   %s", utils.FgColors.Bold, command, utils.FgColors.Reset, description)
 }

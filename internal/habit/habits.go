@@ -1,8 +1,10 @@
 package habit
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"slices"
 	"time"
 
@@ -17,11 +19,45 @@ type Habits struct {
 	UpdatedAt time.Time
 }
 
-func NewHabits() Habits {
-	return Habits{
+func NewHabits() *Habits {
+	return &Habits{
 		Habits:    make([]Habit, 0),
 		UpdatedAt: time.Now(),
 	}
+}
+
+func (h *Habits) Load(filename string) error {
+	file, err := os.ReadFile(filename)
+
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+
+		return err
+	}
+
+	if len(file) == 0 {
+		return err
+	}
+
+	err = json.Unmarshal(file, h)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Habits) Save(filename string) error {
+	data, err := json.Marshal(h)
+
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filename, data, 0644)
 }
 
 func (h *Habits) Create(name string, stepsCount int8, stepTime int16) error {
@@ -87,7 +123,7 @@ func (h *Habits) UpdateToPresent() {
 	h.UpdatedAt = now
 }
 
-func (h *Habits) Print() {
+func (h *Habits) Print(idx int) {
 	t := table.NewWriter()
 
 	t.SetTitle("Habits")
@@ -95,7 +131,13 @@ func (h *Habits) Print() {
 
 	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time"})
 
-	for idx, item := range h.Habits {
+	habits := h.Habits
+
+	if idx >= 0 && idx < len(h.Habits) {
+		habits = habits[idx:1]
+	}
+
+	for idx, item := range habits {
 		totalTime := item.Summary.TotalTime
 		totalTime.Add(item.StepMinutes * int16(item.CheckedSteps))
 
@@ -112,6 +154,10 @@ func (h *Habits) Print() {
 	fmt.Println(t.Render())
 }
 
+func (h *Habits) PrintAll() {
+	h.Print(-1)
+}
+
 func getCheckedStepsText(h *Habit) string {
 	switch {
 	case h.isFrozen:
@@ -123,4 +169,34 @@ func getCheckedStepsText(h *Habit) string {
 	default:
 		return text.FgBlue.Sprintf("%d 😎", h.CheckedSteps)
 	}
+}
+
+var commands = []struct {
+	command string
+	args    string
+	desc    string
+}{{"p", "[index?]", "Print all habits / a habit"},
+	{"a", "[name] [stepTime] [stepsCount]", "Add a habit"},
+	{"d", "[index]", "Delete a habit"},
+	{"ct", "[index] [stepsTime]", "Change step time of a habit"},
+	{"cs", "[index] [stepsCount]", "Change number of steps"},
+	{"f", "[index]?", "Freeze all habits / a habit"},
+	{"uf", "[index]?", "Unfreeze all habits / a habit"},
+	{"q", "", "Quit"},
+}
+
+func (h *Habits) PrintCommands() {
+	t := table.NewWriter()
+	t.Style().Options.DrawBorder = false
+	t.Style().Options.SeparateColumns = false
+
+	for _, item := range commands {
+
+		t.AppendRow(table.Row{text.Bold.Sprint(item.command),
+			text.Bold.Sprint(item.args),
+			item.desc,
+		})
+	}
+
+	fmt.Println(t.Render())
 }
