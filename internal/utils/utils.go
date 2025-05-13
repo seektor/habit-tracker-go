@@ -3,15 +3,17 @@ package utils
 import "time"
 
 var FgColors = struct {
-	FgReset  string
-	FgYellow string
-	FgGreen  string
-	FgBold   string
+	Reset  string
+	Yellow string
+	Green  string
+	Red    string
+	Bold   string
 }{
-	FgReset:  "\033[0m",
-	FgYellow: "\033[33m",
-	FgGreen:  "\033[32m",
-	FgBold:   "\033[1m",
+	Reset:  "\033[0m",
+	Yellow: "\033[33m",
+	Green:  "\033[32m",
+	Red:    "\033[31m",
+	Bold:   "\033[1m",
 }
 
 func getBeginningOfDayDate(t time.Time) time.Time {
