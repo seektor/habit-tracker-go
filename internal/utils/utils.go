@@ -1,6 +1,11 @@
 package utils
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+const FileName = "habit_tracker.json"
 
 var FgColors = struct {
 	Reset  string
@@ -26,4 +31,12 @@ func GetDaysDiff(from time.Time, to time.Time) int32 {
 	toBeginning := getBeginningOfDayDate(to)
 
 	return int32(toBeginning.Sub(fromBeginning).Hours() / 24)
+}
+
+func PrintlnError(msg string) {
+	fmt.Println(FgColors.Red + "=== " + msg + " ===" + FgColors.Reset)
+}
+
+func PrintlnSuccess(msg string) {
+	fmt.Println(FgColors.Green + "=== " + msg + " ===" + FgColors.Reset)
 }

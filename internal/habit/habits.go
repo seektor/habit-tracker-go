@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 
+	"github.com/seektor/habit-tracker-go/internal/command"
 	"github.com/seektor/habit-tracker-go/internal/utils"
 )
 
@@ -26,8 +28,8 @@ func NewHabits() *Habits {
 	}
 }
 
-func (h *Habits) Load(filename string) error {
-	file, err := os.ReadFile(filename)
+func (h *Habits) Load() error {
+	file, err := os.ReadFile(utils.FileName)
 
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -126,7 +128,6 @@ func (h *Habits) UpdateToPresent() {
 func (h *Habits) Print(idx int) {
 	t := table.NewWriter()
 
-	t.SetTitle("Habits")
 	t.SetStyle(table.StyleLight)
 
 	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time"})
@@ -134,7 +135,10 @@ func (h *Habits) Print(idx int) {
 	habits := h.Habits
 
 	if idx >= 0 && idx < len(h.Habits) {
+		t.SetTitle("Habit %d", idx)
 		habits = habits[idx:1]
+	} else {
+		t.SetTitle("Habits")
 	}
 
 	for idx, item := range habits {
@@ -176,10 +180,10 @@ var commands = []struct {
 	args    string
 	desc    string
 }{{"p", "[index?]", "Print all habits / a habit"},
-	{"a", "[name] [stepTime] [stepsCount]", "Add a habit"},
+	{"a", "[name] [stepsCount] [stepTime]", "Add a habit"},
 	{"d", "[index]", "Delete a habit"},
 	{"ct", "[index] [stepsTime]", "Change step time of a habit"},
-	{"cs", "[index] [stepsCount]", "Change number of steps"},
+	{"cs", "[index] [stepCount]", "Change number of steps"},
 	{"f", "[index]?", "Freeze all habits / a habit"},
 	{"uf", "[index]?", "Unfreeze all habits / a habit"},
 	{"q", "", "Quit"},
@@ -199,4 +203,60 @@ func (h *Habits) PrintCommands() {
 	}
 
 	fmt.Println(t.Render())
+}
+
+func (h *Habits) Execute(command command.Command) {
+	switch command.Command {
+	case "p":
+		idxStr, err := command.GetArg(0)
+
+		if err != nil {
+			h.PrintAll()
+		} else {
+			idx, err := strconv.Atoi(idxStr)
+			if err != nil {
+				utils.PrintlnError("invalid index")
+				return
+			}
+			h.Print(int(idx))
+		}
+
+	case "a":
+		name, nameErr := command.GetArg(0)
+		stepsCountStr, stepsCountStrErr := command.GetArg(2)
+		stepTimeStr, stepTimeStrErr := command.GetArg(1)
+
+		if nameErr != nil || stepsCountStrErr != nil || stepTimeStrErr != nil {
+			utils.PrintlnError("missing arguments")
+			return
+		}
+
+		stepsCount, stepsCountErr := strconv.Atoi(stepsCountStr)
+		stepTime, stepTimeErr := strconv.Atoi(stepTimeStr)
+
+		if stepsCountErr != nil || stepTimeErr != nil {
+			utils.PrintlnError("stepsCount and stepTime have to be a number within a proper range")
+			return
+		}
+
+		err := h.Create(name, int8(stepTime), int16(stepsCount))
+		if err != nil {
+			utils.PrintlnError(err.Error())
+			return
+		}
+
+		utils.PrintlnSuccess("Habit has been created")
+		h.Save(utils.FileName)
+
+	case "q":
+		utils.PrintlnSuccess("Bye bye")
+		os.Exit(0)
+
+	default:
+		fmt.Println()
+		utils.PrintlnError("unknown command")
+		fmt.Println()
+		h.PrintCommands()
+	}
+
 }
