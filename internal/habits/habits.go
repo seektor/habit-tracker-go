@@ -141,7 +141,7 @@ func (h *Habits) Print(idx int) {
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = true
 
-	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time", "History"})
+	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "S Count", "S Time (min)", "Curr Streak (D)", "Lon Streak (D)", "Total Time", "History"})
 
 	habits := h.Habits
 
@@ -161,10 +161,11 @@ func (h *Habits) Print(idx int) {
 		t.AppendRow(table.Row{iIdx,
 			item.Name,
 			text.AlignCenter.Apply(stringifyCheckedSteps(&item), 12),
-			item.StepsCount,
-			item.StepMinutes,
-			item.Summary.LongestStreak,
-			totalTime.Stringify(),
+			text.AlignCenter.Apply(strconv.Itoa(int(item.StepsCount)), 6),
+			text.AlignCenter.Apply(strconv.Itoa(int(item.StepMinutes)), 12),
+			text.AlignCenter.Apply(strconv.Itoa(int(item.Summary.CurrentStreak)), 12),
+			text.AlignCenter.Apply(strconv.Itoa(int(item.Summary.LongestStreak)), 12),
+			text.AlignCenter.Apply(totalTime.Stringify(), 12),
 			stringifyHistory(&item),
 		})
 	}
@@ -179,13 +180,13 @@ func (h *Habits) PrintAll() {
 func stringifyCheckedSteps(h *Habit) string {
 	switch {
 	case h.IsFrozen:
-		return text.BgCyan.Sprint("FROZEN")
+		return text.BgBlue.Sprint("FROZEN")
 	case h.CheckedSteps < h.StepsCount:
 		return text.FgRed.Sprintf("%d ❌", h.CheckedSteps)
 	case h.CheckedSteps == h.StepsCount:
 		return text.FgGreen.Sprintf("%d ✅", h.CheckedSteps)
 	default:
-		return text.FgMagenta.Sprintf("%d 😎", h.CheckedSteps)
+		return text.FgYellow.Sprintf("%d 😎", h.CheckedSteps)
 	}
 }
 
@@ -199,11 +200,7 @@ func stringifyHistory(h *Habit) string {
 
 	for idx, entry := range history {
 		if entry.IsFrozen {
-			if h.Summary.CurrentStreak > 0 {
-				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, halfBlock))
-			} else {
-				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, emptyBlock))
-			}
+			sb.WriteString(utils.ColorString(utils.FgColors.Blue, halfBlock))
 		} else {
 			if entry.CheckedSteps == 0 {
 				sb.WriteString(emptyBlock)
@@ -212,7 +209,7 @@ func stringifyHistory(h *Habit) string {
 			} else if entry.CheckedSteps == entry.StepsCount {
 				sb.WriteString(utils.ColorString(utils.FgColors.Green, fullBlock))
 			} else {
-				sb.WriteString(utils.ColorString(utils.FgColors.Magenta, fullBlock))
+				sb.WriteString(utils.ColorString(utils.FgColors.Yellow, fullBlock))
 			}
 		}
 

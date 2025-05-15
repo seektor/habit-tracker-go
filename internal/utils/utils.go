@@ -8,21 +8,19 @@ import (
 const FileName = "habits_tracker.json"
 
 var FgColors = struct {
-	Reset   string
-	Yellow  string
-	Green   string
-	Red     string
-	Magenta string
-	Cyan    string
-	Bold    string
+	Reset  string
+	Yellow string
+	Green  string
+	Red    string
+	Blue   string
+	Bold   string
 }{
-	Reset:   "\033[0m",
-	Yellow:  "\033[33m",
-	Green:   "\033[32m",
-	Red:     "\033[31m",
-	Magenta: "\033[35m",
-	Cyan:    "\033[36m",
-	Bold:    "\033[1m",
+	Reset:  "\033[0m",
+	Yellow: "\033[33m",
+	Green:  "\033[32m",
+	Red:    "\033[31m",
+	Blue:   "\033[34m",
+	Bold:   "\033[1m",
 }
 
 func getBeginningOfDayDate(t time.Time) time.Time {

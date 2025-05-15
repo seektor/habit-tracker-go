@@ -16,6 +16,22 @@ Key features:
 When the application is executed and a day or more have passed the data is recalculated.
 All of the data is stored in a json file and can be displayed in a tabular form.
 
-todo
-union types
-better commands handling (repetitve code)
+![image](table.png)
+
+### Commands
+
+```
+ p   [index?]                           Print all habits / a habit
+ a   [name] [stepsCount] [stepMinutes]  Add a habit
+ d   [index]                            Delete a habit
+ ct  [index] [stepMinutes]              Change step time in minutes of a habit
+ cs  [index] [stepsCount]               Change number of steps
+ f   [index]?                           Freeze all habits / a habit
+ uf  [index]?                           Unfreeze all habits / a habit
+ q                                      Quit
+```
+
+### todo
+
+- Investigate Union Types in go (Entry object)
+- Better commands handling (avoid repetition)
