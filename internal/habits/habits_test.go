@@ -83,11 +83,9 @@ func TestHabitsUpdateToPresent(t *testing.T) {
 		habits := NewHabits()
 		habits.Create("Test", 1, 60)
 
-		preUpdatedHabit := habits.Habits[0]
+		isUpdated := habits.UpdateToPresent()
 
-		habits.UpdateToPresent()
-
-		if habits.Habits[0] != preUpdatedHabit {
+		if isUpdated {
 			t.Error("habits have not been updated")
 		}
 
@@ -107,12 +105,9 @@ func TestHabitsUpdateToPresent(t *testing.T) {
 		habits.Create("Test", 1, 60)
 		habits.UpdatedAt = habits.UpdatedAt.AddDate(0, 0, -1)
 
-		preUpdatedHabit := habits.Habits[0]
+		isUpdated := habits.UpdateToPresent()
 
-		habits.UpdateToPresent()
-		fmt.Printf("%v %v", preUpdatedHabit.Summary.History, habits.Habits[0].Summary.History)
-
-		if habits.Habits[0] == preUpdatedHabit {
+		if !isUpdated {
 			t.Error("habits have not been updated")
 		}
 

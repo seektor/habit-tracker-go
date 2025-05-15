@@ -110,21 +110,21 @@ func (h *Habits) Unfreeze() {
 	}
 }
 
-func (h *Habits) UpdateToPresent() {
+func (h *Habits) UpdateToPresent() bool {
 	now := time.Now()
 	daysDiff := utils.GetDaysDiff(h.UpdatedAt, now)
 
 	switch {
 	case daysDiff < 0:
-		fmt.Println("Unknown error has occurred")
-		return
+		utils.PrintlnError("Unknown error has occurred")
+		return false
 	case daysDiff == 0:
-		fmt.Println("=== Nothing to update ===")
-		return
+		utils.PrintlnInfo("Nothing to update")
+		return false
 	case daysDiff == 1:
-		fmt.Println("=== Updating: 1 day has passed ===")
+		utils.PrintlnInfo("Updating: 1 day has passed")
 	default:
-		fmt.Printf("=== Updating: %d days have passed ===\n", daysDiff)
+		utils.PrintlnInfo(fmt.Sprintf("Updating: %d days have passed \n", daysDiff))
 	}
 
 	for idx := range h.Habits {
@@ -132,12 +132,14 @@ func (h *Habits) UpdateToPresent() {
 	}
 
 	h.UpdatedAt = now
+	return true
 }
 
 func (h *Habits) Print(idx int) {
 	t := table.NewWriter()
 
 	t.SetStyle(table.StyleLight)
+	t.Style().Options.SeparateRows = true
 
 	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time", "History"})
 
@@ -176,7 +178,7 @@ func (h *Habits) PrintAll() {
 
 func stringifyCheckedSteps(h *Habit) string {
 	switch {
-	case h.isFrozen:
+	case h.IsFrozen:
 		return text.BgCyan.Sprint("FROZEN")
 	case h.CheckedSteps < h.StepsCount:
 		return text.FgRed.Sprintf("%d ❌", h.CheckedSteps)
@@ -196,25 +198,22 @@ func stringifyHistory(h *Habit) string {
 	history := append(h.Summary.History[:], h.getCurrentEntry())
 
 	for idx, entry := range history {
-		switch entry.(type) {
-		case ActiveEntry:
-			if h.CheckedSteps == 0 {
-				sb.WriteString(emptyBlock)
-			} else if h.CheckedSteps < h.StepsCount {
-				sb.WriteString(halfBlock)
-			} else if h.CheckedSteps == h.StepsCount {
-				sb.WriteString(utils.ColorString(utils.FgColors.Green, fullBlock))
-			} else {
-				sb.WriteString(utils.ColorString(utils.FgColors.Magenta, fullBlock))
-			}
-		case FrozenEntry:
+		if entry.IsFrozen {
 			if h.Summary.CurrentStreak > 0 {
 				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, halfBlock))
 			} else {
 				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, emptyBlock))
 			}
-		default:
-			sb.WriteString(emptyBlock)
+		} else {
+			if entry.CheckedSteps == 0 {
+				sb.WriteString(emptyBlock)
+			} else if entry.CheckedSteps < entry.StepsCount {
+				sb.WriteString(halfBlock)
+			} else if entry.CheckedSteps == entry.StepsCount {
+				sb.WriteString(utils.ColorString(utils.FgColors.Green, fullBlock))
+			} else {
+				sb.WriteString(utils.ColorString(utils.FgColors.Magenta, fullBlock))
+			}
 		}
 
 		if idx != len(history)-1 {
@@ -284,7 +283,7 @@ func (h *Habits) Execute(command command.Command) {
 		stepsCount, stepsCountErr := strconv.Atoi(stepsCountStr)
 		stepMinutes, stepMinutesErr := strconv.Atoi(stepMinutesStr)
 
-		if stepsCountErr != nil || stepMinutesErr == nil {
+		if stepsCountErr != nil || stepMinutesErr != nil {
 			utils.PrintlnError("stepsCount and stepMinutes have to be a number within a proper range")
 			return
 		}

@@ -9,21 +9,11 @@ const MaxHabitNameLength int8 = 16
 const MaxHabitTotalTime int16 = 16 * 60 // minutes
 const HistoryLen int8 = 6
 
-type Entry interface {
-	isEntry()
+type Entry struct {
+	CheckedSteps int8
+	StepsCount   int8
+	IsFrozen     bool
 }
-
-type ActiveEntry struct {
-	Done int8
-	Todo int8
-}
-
-func (ae ActiveEntry) isEntry() {}
-
-type FrozenEntry struct{}
-
-func (fe FrozenEntry) isEntry() {}
-
 type Summary struct {
 	TotalTime     TotalTime
 	LongestStreak int16
@@ -37,7 +27,7 @@ type Habit struct {
 	StepsCount   int8
 	StepMinutes  int16 // minutes
 	CheckedSteps int8
-	isFrozen     bool
+	IsFrozen     bool
 	Summary      Summary
 }
 
@@ -48,7 +38,7 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 		StepsCount:   stepsCount,
 		StepMinutes:  stepTime,
 		CheckedSteps: 0,
-		isFrozen:     false,
+		IsFrozen:     false,
 		Summary: Summary{
 			TotalTime:     TotalTime{},
 			LongestStreak: 0,
@@ -61,7 +51,7 @@ func newHabit(name string, stepsCount int8, stepTime int16) Habit {
 }
 
 func (h *Habit) CheckStep() {
-	if h.isFrozen {
+	if h.IsFrozen {
 		return
 	}
 
@@ -69,7 +59,7 @@ func (h *Habit) CheckStep() {
 }
 
 func (h *Habit) UncheckStep() {
-	if h.isFrozen {
+	if h.IsFrozen {
 		return
 	}
 
@@ -115,27 +105,27 @@ func (h *Habit) SetStepMinutes(stepMinutes int16) error {
 }
 
 func (h *Habit) Freeze() {
-	h.isFrozen = true
+	h.IsFrozen = true
 	h.CheckedSteps = 0
 }
 
 func (h *Habit) Unfreeze() {
-	h.isFrozen = false
+	h.IsFrozen = false
 }
 
 func (h *Habit) getCurrentEntry() Entry {
-	if h.isFrozen {
-		return FrozenEntry{}
+	if h.IsFrozen {
+		return Entry{IsFrozen: true}
 	} else {
-		return ActiveEntry{
-			Done: h.CheckedSteps,
-			Todo: h.StepsCount,
+		return Entry{
+			CheckedSteps: h.CheckedSteps,
+			StepsCount:   h.StepsCount,
 		}
 	}
 }
 
 func (h *Habit) updateStatistics() {
-	if h.isFrozen {
+	if h.IsFrozen {
 		return
 	}
 
@@ -156,7 +146,9 @@ func (h *Habit) UpdateToPresent(daysDiff int32) {
 	if daysDiff <= 0 {
 		return
 	}
+
 	firstDayEntryIdx := int32(HistoryLen) - daysDiff
+
 	if firstDayEntryIdx >= 0 {
 		// Shift history and save the current entry when it is within the history range
 		for i := range int(firstDayEntryIdx) {

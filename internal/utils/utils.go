@@ -48,3 +48,7 @@ func PrintlnError(msg string) {
 func PrintlnSuccess(msg string) {
 	fmt.Println(FgColors.Green + "=== " + msg + " ===" + FgColors.Reset)
 }
+
+func PrintlnInfo(msg string) {
+	fmt.Println("=== " + msg + " ===")
+}

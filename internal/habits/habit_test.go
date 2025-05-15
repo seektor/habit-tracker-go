@@ -98,8 +98,8 @@ func TestFreeze(t *testing.T) {
 		habit.CheckStep()
 		habit.Freeze()
 
-		if habit.isFrozen != true {
-			t.Errorf("expected isFrozen to be %t, got %t", true, habit.isFrozen)
+		if habit.IsFrozen != true {
+			t.Errorf("expected IsFrozen to be %t, got %t", true, habit.IsFrozen)
 		}
 
 		if habit.CheckedSteps != 0 {
@@ -113,7 +113,7 @@ func TestUnfreeze(t *testing.T) {
 		habit := newHabit("Test", 1, 60)
 		habit.Unfreeze()
 
-		if habit.isFrozen == true {
+		if habit.IsFrozen == true {
 			t.Error("habit is not unfrozen correctly")
 		}
 	})
@@ -140,7 +140,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.CheckStep()
 		habit.UpdateToPresent(0)
 
-		isUpdated := isUpdated(&habit, 0, 0, TotalTime{Hours: 0}, [HistoryLen]Entry{nil, nil, nil, nil, nil, nil})
+		isUpdated := isUpdated(&habit, 0, 0, TotalTime{Hours: 0}, [HistoryLen]Entry{{}, {}, {}, {}, {}, {}})
 
 		if isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -153,7 +153,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.CheckStep()
 		habit.UpdateToPresent(1)
 
-		isUpdated := isUpdated(&habit, 1, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{nil, nil, nil, nil, nil, ActiveEntry{2, 2}})
+		isUpdated := isUpdated(&habit, 1, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{{}, {}, {}, {}, {}, {2, 2, false}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -169,7 +169,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.Freeze()
 		habit.UpdateToPresent(1)
 
-		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{nil, nil, nil, nil, nil, FrozenEntry{}})
+		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{{}, {}, {}, {}, {}, {0, 0, true}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -182,7 +182,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.CheckStep()
 		habit.UpdateToPresent(3)
 
-		isUpdated := isUpdated(&habit, 0, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{nil, nil, nil, ActiveEntry{2, 2}, ActiveEntry{0, 2}, ActiveEntry{0, 2}})
+		isUpdated := isUpdated(&habit, 0, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{{}, {}, {}, {2, 2, false}, {0, 2, false}, {0, 2, false}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -198,7 +198,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.Freeze()
 		habit.UpdateToPresent(3)
 
-		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{nil, nil, nil, FrozenEntry{}, FrozenEntry{}, FrozenEntry{}})
+		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{{}, {}, {}, {0, 0, true}, {0, 0, true}, {0, 0, true}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -211,7 +211,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.CheckStep()
 		habit.UpdateToPresent(10)
 
-		isUpdated := isUpdated(&habit, 0, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{ActiveEntry{0, 2}, ActiveEntry{0, 2}, ActiveEntry{0, 2}, ActiveEntry{0, 2}, ActiveEntry{0, 2}, ActiveEntry{0, 2}})
+		isUpdated := isUpdated(&habit, 0, 1, TotalTime{Hours: 2}, [HistoryLen]Entry{{0, 2, false}, {0, 2, false}, {0, 2, false}, {0, 2, false}, {0, 2, false}, {0, 2, false}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")
@@ -227,7 +227,7 @@ func TestHabitUpdateToPresent(t *testing.T) {
 		habit.Freeze()
 		habit.UpdateToPresent(10)
 
-		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{FrozenEntry{}, FrozenEntry{}, FrozenEntry{}, FrozenEntry{}, FrozenEntry{}, FrozenEntry{}})
+		isUpdated := isUpdated(&habit, 2, 3, TotalTime{}, [HistoryLen]Entry{{0, 0, true}, {0, 0, true}, {0, 0, true}, {0, 0, true}, {0, 0, true}, {0, 0, true}})
 
 		if !isUpdated {
 			t.Error("habit has not been updated successfully")

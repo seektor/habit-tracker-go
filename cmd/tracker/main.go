@@ -23,6 +23,14 @@ func main() {
 	}
 
 	fmt.Println()
+	isUpdated := habits.UpdateToPresent()
+	fmt.Println()
+
+	if isUpdated {
+		habits.Save(utils.FileName)
+		utils.PrintlnSuccess("Habits have been updated")
+		fmt.Println()
+	}
 
 	if len(habits.Habits) > 0 {
 		habits.PrintAll()
