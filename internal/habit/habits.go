@@ -7,6 +7,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -130,7 +131,7 @@ func (h *Habits) Print(idx int) {
 
 	t.SetStyle(table.StyleLight)
 
-	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time"})
+	t.AppendHeader(table.Row{"#", "Name", "Checked Steps", "Steps Count", "Step Time (min)", "Longest Streak (D)", "Total Time", "History"})
 
 	habits := h.Habits
 
@@ -147,11 +148,12 @@ func (h *Habits) Print(idx int) {
 
 		t.AppendRow(table.Row{idx,
 			item.Name,
-			text.AlignCenter.Apply(getCheckedStepsText(&item), 12),
+			text.AlignCenter.Apply(stringifyCheckedSteps(&item), 12),
 			item.StepsCount,
 			item.StepMinutes,
 			item.Summary.LongestStreak,
 			totalTime.Stringify(),
+			stringifyHistory(&item),
 		})
 	}
 
@@ -162,17 +164,55 @@ func (h *Habits) PrintAll() {
 	h.Print(-1)
 }
 
-func getCheckedStepsText(h *Habit) string {
+func stringifyCheckedSteps(h *Habit) string {
 	switch {
 	case h.isFrozen:
-		return text.BgBlue.Sprint("FROZEN")
+		return text.BgCyan.Sprint("FROZEN")
 	case h.CheckedSteps < h.StepsCount:
 		return text.FgRed.Sprintf("%d ❌", h.CheckedSteps)
 	case h.CheckedSteps == h.StepsCount:
 		return text.FgGreen.Sprintf("%d ✅", h.CheckedSteps)
 	default:
-		return text.FgBlue.Sprintf("%d 😎", h.CheckedSteps)
+		return text.FgMagenta.Sprintf("%d 😎", h.CheckedSteps)
 	}
+}
+
+func stringifyHistory(h *Habit) string {
+	emptyBlock := "▁"
+	halfBlock := "▄"
+	fullBlock := "█"
+
+	var sb strings.Builder
+	history := append(h.Summary.History[:], h.getCurrentEntry())
+
+	for idx, entry := range history {
+		switch entry.(type) {
+		case ActiveEntry:
+			if h.CheckedSteps == 0 {
+				sb.WriteString(emptyBlock)
+			} else if h.CheckedSteps < h.StepsCount {
+				sb.WriteString(halfBlock)
+			} else if h.CheckedSteps == h.StepsCount {
+				sb.WriteString(utils.ColorString(utils.FgColors.Green, fullBlock))
+			} else {
+				sb.WriteString(utils.ColorString(utils.FgColors.Magenta, fullBlock))
+			}
+		case FrozenEntry:
+			if h.Summary.CurrentStreak > 0 {
+				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, halfBlock))
+			} else {
+				sb.WriteString(utils.ColorString(utils.FgColors.Cyan, emptyBlock))
+			}
+		default:
+			sb.WriteString(emptyBlock)
+		}
+
+		if idx != len(history)-1 {
+			sb.WriteRune(' ')
+		}
+	}
+
+	return sb.String()
 }
 
 var commands = []struct {
