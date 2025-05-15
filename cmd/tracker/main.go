@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/seektor/habit-tracker-go/internal/command"
-	"github.com/seektor/habit-tracker-go/internal/habit"
-	"github.com/seektor/habit-tracker-go/internal/utils"
+	"github.com/seektor/habits-tracker-go/internal/command"
+	"github.com/seektor/habits-tracker-go/internal/habits"
+	"github.com/seektor/habits-tracker-go/internal/utils"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 		"=== Habit Tracker ===" +
 		utils.FgColors.Reset)
 
-	habits := habit.NewHabits()
+	habits := habits.NewHabits()
 
 	if err := habits.Load(); err != nil {
 		fmt.Println(utils.FgColors.Red + err.Error())

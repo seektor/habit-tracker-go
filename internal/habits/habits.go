@@ -1,4 +1,4 @@
-package habit
+package habits
 
 import (
 	"encoding/json"
@@ -13,8 +13,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 
-	"github.com/seektor/habit-tracker-go/internal/command"
-	"github.com/seektor/habit-tracker-go/internal/utils"
+	"github.com/seektor/habits-tracker-go/internal/command"
+	"github.com/seektor/habits-tracker-go/internal/utils"
 )
 
 type Habits struct {
@@ -80,6 +80,14 @@ func (h *Habits) Create(name string, stepsCount int8, stepTime int16) error {
 	return nil
 }
 
+func (h *Habits) Get(idx int) (*Habit, error) {
+	if idx >= 0 && idx < len(h.Habits) {
+		return &h.Habits[idx], nil
+	}
+
+	return nil, errors.New("invalid index")
+}
+
 func (h *Habits) Delete(idx int) error {
 	if idx < 0 || idx >= len(h.Habits) {
 		return errors.New("invalid index")
@@ -135,18 +143,20 @@ func (h *Habits) Print(idx int) {
 
 	habits := h.Habits
 
-	if idx >= 0 && idx < len(h.Habits) {
-		t.SetTitle("Habit %d", idx)
+	isSingle := idx >= 0 && idx < len(h.Habits)
+	if isSingle {
 		habits = habits[idx:1]
-	} else {
-		t.SetTitle("Habits")
 	}
 
-	for idx, item := range habits {
+	for iIdx, item := range habits {
+		if isSingle {
+			iIdx = idx
+		}
+
 		totalTime := item.Summary.TotalTime
 		totalTime.Add(item.StepMinutes * int16(item.CheckedSteps))
 
-		t.AppendRow(table.Row{idx,
+		t.AppendRow(table.Row{iIdx,
 			item.Name,
 			text.AlignCenter.Apply(stringifyCheckedSteps(&item), 12),
 			item.StepsCount,
@@ -220,10 +230,10 @@ var commands = []struct {
 	args    string
 	desc    string
 }{{"p", "[index?]", "Print all habits / a habit"},
-	{"a", "[name] [stepsCount] [stepTime]", "Add a habit"},
+	{"a", "[name] [stepsCount] [stepMinutes]", "Add a habit"},
 	{"d", "[index]", "Delete a habit"},
-	{"ct", "[index] [stepsTime]", "Change step time of a habit"},
-	{"cs", "[index] [stepCount]", "Change number of steps"},
+	{"ct", "[index] [stepMinutes]", "Change step time in minutes of a habit"},
+	{"cs", "[index] [stepsCount]", "Change number of steps"},
 	{"f", "[index]?", "Freeze all habits / a habit"},
 	{"uf", "[index]?", "Unfreeze all habits / a habit"},
 	{"q", "", "Quit"},
@@ -264,22 +274,22 @@ func (h *Habits) Execute(command command.Command) {
 	case "a":
 		name, nameErr := command.GetArg(0)
 		stepsCountStr, stepsCountStrErr := command.GetArg(2)
-		stepTimeStr, stepTimeStrErr := command.GetArg(1)
+		stepMinutesStr, stepMinutesStrErr := command.GetArg(1)
 
-		if nameErr != nil || stepsCountStrErr != nil || stepTimeStrErr != nil {
+		if nameErr != nil || stepsCountStrErr != nil || stepMinutesStrErr != nil {
 			utils.PrintlnError("missing arguments")
 			return
 		}
 
 		stepsCount, stepsCountErr := strconv.Atoi(stepsCountStr)
-		stepTime, stepTimeErr := strconv.Atoi(stepTimeStr)
+		stepMinutes, stepMinutesErr := strconv.Atoi(stepMinutesStr)
 
-		if stepsCountErr != nil || stepTimeErr != nil {
-			utils.PrintlnError("stepsCount and stepTime have to be a number within a proper range")
+		if stepsCountErr != nil || stepMinutesErr == nil {
+			utils.PrintlnError("stepsCount and stepMinutes have to be a number within a proper range")
 			return
 		}
 
-		err := h.Create(name, int8(stepTime), int16(stepsCount))
+		err := h.Create(name, int8(stepMinutes), int16(stepsCount))
 		if err != nil {
 			utils.PrintlnError(err.Error())
 			return
@@ -287,6 +297,68 @@ func (h *Habits) Execute(command command.Command) {
 
 		utils.PrintlnSuccess("Habit has been created")
 		h.Save(utils.FileName)
+
+	case "d":
+		idxStr, idxStrErr := command.GetArg(0)
+
+		if idxStrErr != nil {
+			utils.PrintlnError("missing argument")
+			return
+		}
+
+		idx, idxErr := strconv.Atoi(idxStr)
+
+		if idxErr != nil {
+			utils.PrintlnError("invalid index")
+			return
+		}
+
+		err := h.Delete(idx)
+
+		if err == nil {
+			utils.PrintlnSuccess("Habit has been deleted")
+			h.Save(utils.FileName)
+		} else {
+			utils.PrintlnError(err.Error())
+		}
+
+	case "ct":
+		idxStr, idxStrErr := command.GetArg(0)
+		stepMinutesStr, stepMinutesStrErr := command.GetArg(1)
+
+		if idxStrErr != nil || stepMinutesStrErr != nil {
+			utils.PrintlnError("missing arguments")
+			return
+		}
+
+		idx, idxErr := strconv.Atoi(idxStr)
+		stepMinutes, stepMinutesErr := strconv.Atoi(stepMinutesStr)
+
+		if idxErr != nil {
+			utils.PrintlnError("invalid index")
+			return
+		}
+
+		if stepMinutesErr != nil {
+			utils.PrintlnError("invalid number of minutes")
+			return
+		}
+
+		habit, habitErr := h.Get(idx)
+
+		if habitErr != nil {
+			utils.PrintlnError(habitErr.Error())
+			return
+		}
+
+		err := habit.SetStepMinutes(int16(stepMinutes))
+
+		if err == nil {
+			utils.PrintlnSuccess("Step time has been updated")
+			h.Save(utils.FileName)
+		} else {
+			utils.PrintlnError(err.Error())
+		}
 
 	case "q":
 		utils.PrintlnSuccess("Bye bye")

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const FileName = "habit_tracker.json"
+const FileName = "habits_tracker.json"
 
 var FgColors = struct {
 	Reset   string

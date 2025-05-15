@@ -1,4 +1,4 @@
-module github.com/seektor/habit-tracker-go
+module github.com/seektor/habits-tracker-go
 
 go 1.24.0
 
