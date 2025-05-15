@@ -98,13 +98,13 @@ func (h *Habits) Delete(idx int) error {
 	return nil
 }
 
-func (h *Habits) Freeze(idx int) {
+func (h *Habits) Freeze() {
 	for _, item := range h.Habits {
 		item.Freeze()
 	}
 }
 
-func (h *Habits) Unfreeze(idx int) {
+func (h *Habits) Unfreeze() {
 	for _, item := range h.Habits {
 		item.Unfreeze()
 	}
@@ -258,9 +258,9 @@ func (h *Habits) PrintCommands() {
 func (h *Habits) Execute(command command.Command) {
 	switch command.Command {
 	case "p":
-		idxStr, err := command.GetArg(0)
+		idxStr, idxStrErr := command.GetArg(0)
 
-		if err != nil {
+		if idxStrErr != nil {
 			h.PrintAll()
 		} else {
 			idx, err := strconv.Atoi(idxStr)
@@ -358,6 +358,94 @@ func (h *Habits) Execute(command command.Command) {
 			h.Save(utils.FileName)
 		} else {
 			utils.PrintlnError(err.Error())
+		}
+
+	case "cs":
+		idxStr, idxStrErr := command.GetArg(0)
+		stepsCountStr, stepsCountStrErr := command.GetArg(1)
+
+		if idxStrErr != nil || stepsCountStrErr != nil {
+			utils.PrintlnError("missing arguments")
+			return
+		}
+
+		idx, idxErr := strconv.Atoi(idxStr)
+		stepsCount, stepsCountErr := strconv.Atoi(stepsCountStr)
+
+		if idxErr != nil {
+			utils.PrintlnError("invalid index")
+			return
+		}
+
+		if stepsCountErr != nil {
+			utils.PrintlnError("invalid number of steps")
+			return
+		}
+
+		habit, habitErr := h.Get(idx)
+
+		if habitErr != nil {
+			utils.PrintlnError(habitErr.Error())
+			return
+		}
+
+		err := habit.SetStepsCount(int8(stepsCount))
+
+		if err == nil {
+			utils.PrintlnSuccess("Steps count has been updated")
+			h.Save(utils.FileName)
+		} else {
+			utils.PrintlnError(err.Error())
+		}
+
+	case "f":
+		idxStr, idxStrErr := command.GetArg(0)
+
+		if idxStrErr != nil {
+			h.Freeze()
+			utils.PrintlnSuccess("Habits have been frozen")
+			h.Save(utils.FileName)
+		} else {
+			idx, err := strconv.Atoi(idxStr)
+			if err != nil {
+				utils.PrintlnError("invalid index")
+				return
+			}
+
+			habit, habitErr := h.Get(idx)
+
+			if habitErr != nil {
+				utils.PrintlnError(habitErr.Error())
+				return
+			}
+			habit.Freeze()
+			utils.PrintlnSuccess("Habit has been frozen")
+			h.Save(utils.FileName)
+		}
+
+	case "uf":
+		idxStr, idxStrErr := command.GetArg(0)
+
+		if idxStrErr != nil {
+			h.Unfreeze()
+			utils.PrintlnSuccess("Habits have been unfrozen")
+			h.Save(utils.FileName)
+		} else {
+			idx, err := strconv.Atoi(idxStr)
+			if err != nil {
+				utils.PrintlnError("invalid index")
+				return
+			}
+
+			habit, habitErr := h.Get(idx)
+
+			if habitErr != nil {
+				utils.PrintlnError(habitErr.Error())
+				return
+			}
+			habit.Freeze()
+			utils.PrintlnSuccess("Habit has been unfrozen")
+			h.Save(utils.FileName)
 		}
 
 	case "q":
